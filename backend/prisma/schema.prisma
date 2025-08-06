@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String               @id @default(cuid())
+  name        String            
+  email       String            @unique
+  password    String
+  role        String            @default("USER")
+  quiz        Quiz[]
+  submission  UserSubmission[]
+  result      QuizResult[]
+}
+
+model Quiz {
+  id          String               @id @default(cuid())
+  title      String
+  userId     String
+  user       User       @relation(fields: [userId], references: [id])
+  questions  Question[]
+  submission  UserSubmission[]
+  result      QuizResult[]
+}
+
+model Question {
+  id          String               @id @default(cuid())
+  title     String
+  options    Option[]
+  quizId    String
+  quiz      Quiz  @relation(fields: [quizId], references: [id])
+  answer    Answer[]
+  submission  UserSubmission[]
+}
+
+model Option {
+  id          String               @id @default(cuid())
+  option    String
+  questionId   String
+  question   Question  @relation(fields: [questionId], references: [id])
+  answer    Answer[]
+  submission  UserSubmission[]
+}
+
+model Answer {
+  id          String               @id @default(cuid())
+  questionId  String
+  optionId    String
+  question    Question  @relation(fields: [questionId], references: [id])
+  option      Option    @relation(fields: [optionId], references: [id])
+}
+
+model UserSubmission {
+  id          String               @id @default(cuid())
+  userId  String
+  quizId  String
+  questionId  String
+  optionId    String
+  isCorrect   Boolean
+  user        User      @relation(fields: [userId], references: [id])
+  quiz        Quiz    @relation(fields: [quizId], references: [id])
+  question    Question  @relation(fields: [questionId], references: [id])
+  option      Option    @relation(fields: [optionId], references: [id])
+}
+
+model QuizResult {
+  id          String               @id @default(cuid())
+  userId  String
+  quizId  String
+  score   Int
+  user    User   @relation(fields: [userId], references: [id])
+  quiz    Quiz @relation(fields: [quizId], references: [id])
+  @@unique([userId,quizId])
+}
